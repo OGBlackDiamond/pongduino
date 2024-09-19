@@ -82,7 +82,7 @@ private:
             }
 
             if (yStep < 0 || yStep > 7) {
-                direction[0] *= -1;
+                direction[1] *= -1;
                 // account for any overflow that would happen on the next tick
                 y -= direction[0];
             }

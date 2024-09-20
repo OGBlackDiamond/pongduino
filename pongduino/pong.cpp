@@ -8,7 +8,8 @@ private:
     // contains possible values for the renderBoard method
     enum BoardTypes {
         INIT,
-        OUTPUT
+        OUTPUT,
+        RENDER
     };
 
     class Paddle {
@@ -39,6 +40,7 @@ private:
         void down()  {y--;}
         void scorePoint() {score++;}
         int getY() {return y;}
+        int getX() {return x;}
         int getHeight() {return height;}
 
     };
@@ -151,6 +153,14 @@ public:
                     case BoardTypes::OUTPUT:
                         // TODO: output each board value to the corresponding pixel here
                         break;
+                    case BoardTypes::RENDER:
+                        for (int i = player1.getY();i < player1.getY()+player1.getHeight(); i++) {
+                            board[player1.getX()][i] = true;
+                        }
+                        for (int i = player2.getY();i < player2.getY()+player2.getHeight(); i++) {
+                            board[player2.getX()][i] = true;
+                        }
+                        break;
                 }
             }
         }
@@ -161,6 +171,8 @@ public:
         ball.move(); 
         // TODO: accept user input and use the up() and down() methods on each paddle to control them 
         ball.checkNextColision(&player1, &player2);
+        renderBoard(BoardTypes::INIT);
+        renderBoard(BoardTypes::RENDER);
         renderBoard(BoardTypes::OUTPUT);
     }
     

@@ -125,16 +125,27 @@ private:
             return direction[1];
         }
 
+        int getX() {
+            return x;
+        }
+
+        int getY() {
+            return y;
+        }
+
     };
 
     Paddle player1;
     Paddle player2;
     Ball ball;
 
+    DisplayDriver display;
+
 public:
     
-    Pong(): ball(3, 3), player1(0), player2(7) {
+    Pong(DisplayDriver display): ball(3, 3), player1(0), player2(7) {
         renderBoard(BoardTypes::INIT);
+        this->display = display;
     }
 
     // this method is really just doing different things to the entire board 
@@ -151,7 +162,7 @@ public:
                         break;
                     // renders the board to the pixel array
                     case BoardTypes::OUTPUT:
-                        // TODO: output each board value to the corresponding pixel here
+                        display.renderToBoard(board);
                         break;
                     case BoardTypes::RENDER:
                         for (int i = player1.getY();i < player1.getY()+player1.getHeight(); i++) {
@@ -160,6 +171,7 @@ public:
                         for (int i = player2.getY();i < player2.getY()+player2.getHeight(); i++) {
                             board[player2.getX()][i] = true;
                         }
+                        board[ball.getX()][ball.getY()] = true;
                         break;
                 }
             }

@@ -1,199 +1,203 @@
 
-class Pong {
+// class Pong {
 
-private:
+// private:
 
-  bool board[8][8];
+//   bool** board;
 
-  // contains possible values for the renderBoard method
-  enum BoardTypes {
-    INIT,
-    OUTPUT,
-    RENDER
-  };
+//   // contains possible values for the renderBoard method
+//   enum BoardTypes {
+//     INIT,
+//     OUT,
+//     RENDER
+//   };
 
-  class Paddle {
-  private:
+//   class Paddle {
+//   private:
 
-    int x;
-    int y;
+//     int x;
+//     int y;
 
-    int score;
+//     int score;
 
-    // we can change this if needed
-    int height = 3;
+//     // we can change this if needed
+//     int height = 3;
 
-  public:
+//   public:
 
-    Paddle() {
-      x = -1;
-      y = -1;
-    }
+//     Paddle() {
+//       x = -1;
+//       y = -1;
+//     }
 
-    Paddle(int x) {
-      this->x = x;
-      y = 3;
-      score = 0;
-    }
+//     Paddle(int x) {
+//       this->x = x;
+//       y = 3;
+//       score = 0;
+//     }
 
-    void up() {
-      y++;
-    }
-    void down() {
-      y--;
-    }
-    void scorePoint() {
-      score++;
-    }
-    int getY() {
-      return y;
-    }
-    int getX() {
-      return x;
-    }
-    int getHeight() {
-      return height;
-    }
-  };
+//     void up() {
+//       y++;
+//     }
+//     void down() {
+//       y--;
+//     }
+//     void scorePoint() {
+//       score++;
+//     }
+//     int getY() {
+//       return y;
+//     }
+//     int getX() {
+//       return x;
+//     }
+//     int getHeight() {
+//       return height;
+//     }
+//   };
 
-  class Ball {
-  private:
+//   class Ball {
+//   private:
 
-    int x;
-    int y;
+//     int x;
+//     int y;
 
-    int direction[2];
+//     int direction[2];
 
-  public:
+//   public:
 
-    Ball(int x, int y) {
-      this->x = x;
-      this->y = y;
-    }
+//     Ball(int x, int y) {
+//       this->x = x;
+//       this->y = y;
+//     }
 
-    void move() {
-      x += direction[0];
-      y += direction[1];
-    }
+//     Ball(){}
 
-    void checkNextColision(Paddle *p1, Paddle *p2) {
-      // if the ball is not near an edge, don't bother calculating anything
-      if (x <= 6 && x >= 2) return;
+//     void move() {
+//       x += direction[0];
+//       y += direction[1];
+//     }
 
-      // decide which paddle to detect based on ball's position
-      Paddle player = x > 6 ? *p2 : *p1;
+//     void checkNextColision(Paddle *p1, Paddle *p2) {
+//       // if the ball is not near an edge, don't bother calculating anything
+//       if (x <= 6 && x >= 2) return;
 
-      // the x and y positions the ball will be in on the next tick
-      int xStep = x + direction[0];
-      int yStep = y + direction[1];
+//       // decide which paddle to detect based on ball's position
+//       Paddle player = x > 6 ? *p2 : *p1;
 
-      if (yStep >= player.getY() && yStep <= player.getY() + player.getHeight()) {
-        direction[0] *= -1;
-        direction[1] = x - (player.getY() + (player.getHeight() / 2));
-        // cap the vertical speed
-        if (direction[1] > 3) { direction[1] = 3; }
-      }
+//       // the x and y positions the ball will be in on the next tick
+//       int xStep = x + direction[0];
+//       int yStep = y + direction[1];
 
-      if (yStep < 0 || yStep > 7) {
-        direction[1] *= -1;
-        // account for any overflow that would happen on the next tick
-        y -= direction[0];
-      }
+//       if (yStep >= player.getY() && yStep <= player.getY() + player.getHeight()) {
+//         direction[0] *= -1;
+//         direction[1] = x - (player.getY() + (player.getHeight() / 2));
+//         // cap the vertical speed
+//         if (direction[1] > 3) { direction[1] = 3; }
+//       }
 
-      if (xStep < 0 || xStep > 7) {
-        direction[0] *= -1;
-        direction[1] = 1;
-        x = 3;
-        y = 3;
-        player.scorePoint();
-      }
-    }
+//       if (yStep < 0 || yStep > 7) {
+//         direction[1] *= -1;
+//         // account for any overflow that would happen on the next tick
+//         y -= direction[0];
+//       }
 
-    void setDirection(int x, int y) {
-      direction[0] = x;
-      direction[1] = y;
-    }
+//       if (xStep < 0 || xStep > 7) {
+//         direction[0] *= -1;
+//         direction[1] = 1;
+//         x = 3;
+//         y = 3;
+//         player.scorePoint();
+//       }
+//     }
 
-    void setDirectionX(int x) {
-      this->x = x;
-    }
+//     void setDirection(int x, int y) {
+//       direction[0] = x;
+//       direction[1] = y;
+//     }
 
-    void setDirectionY(int y) {
-      this->y = y;
-    }
+//     void setDirectionX(int x) {
+//       this->x = x;
+//     }
 
-    int *getDirection() {
-      return direction;
-    }
+//     void setDirectionY(int y) {
+//       this->y = y;
+//     }
 
-    int getDirectionX() {
-      return direction[0];
-    }
+//     int *getDirection() {
+//       return direction;
+//     }
 
-    int getDirectionY() {
-      return direction[1];
-    }
+//     int getDirectionX() {
+//       return direction[0];
+//     }
 
-    int getX() {
-      return x;
-    }
+//     int getDirectionY() {
+//       return direction[1];
+//     }
 
-    int getY() {
-      return y;
-    }
-  };
+//     int getX() {
+//       return x;
+//     }
 
-  Paddle player1;
-  Paddle player2;
-  Ball ball;
+//     int getY() {
+//       return y;
+//     }
+//   };
 
-  DisplayDriver display;
+//   Paddle player1;
+//   Paddle player2;
+//   Ball ball;
 
-public:
+//   DisplayDriver* display;
 
-  Pong(DisplayDriver display)
-    : ball(3, 3), player1(0), player2(7) {
-    renderBoard(BoardTypes::INIT);
-    this->display = display;
-  }
+// public:
 
-  // this method is really just doing different things to the entire board
-  // so we only have to write one double-for loop
-  void renderBoard(BoardTypes type) {
-    // funny double-for loop
-    for (int i = 0; i > sizeof(board) / sizeof(board[0]); i++) {
-      for (int j = 0; j > sizeof(board[0]) / sizeof(board[0][0]); j++) {
-        // switch through possible behaviors
-        switch (type) {
-          // sets all values to false - a default state
-          case BoardTypes::INIT:
-            board[i][j] = false;
-            break;
-          // renders the board to the pixel array
-          case BoardTypes::OUTPUT:
-            display.renderToBoard(board);
-            break;
-          case BoardTypes::RENDER:
-            for (int i = player1.getY(); i < player1.getY() + player1.getHeight(); i++) {
-              board[player1.getX()][i] = true;
-            }
-            for (int i = player2.getY(); i < player2.getY() + player2.getHeight(); i++) {
-              board[player2.getX()][i] = true;
-            }
-            board[ball.getX()][ball.getY()] = true;
-            break;
-        }
-      }
-    }
-  }
-  // funny pyramid function ^
 
-  void tick() {
-    ball.move();
-    // TODO: accept user input and use the up() and down() methods on each paddle to control them
-    ball.checkNextColision(&player1, &player2);
-    renderBoard(BoardTypes::INIT);
-    renderBoard(BoardTypes::RENDER);
-    renderBoard(BoardTypes::OUTPUT);
-  }
-};
+//   // this method is really just doing different things to the entire board
+//   // so we only have to write one double-for loop
+//   void renderBoard(BoardTypes type) {
+//     // funny double-for loop
+//     for (int i = 0; i > sizeof(board) / sizeof(board[0]); i++) {
+//       for (int j = 0; j > sizeof(board[0]) / sizeof(board[0][0]); j++) {
+//         // switch through possible behaviors
+//         switch (type) {
+//           // sets all values to false - a default state
+//           case BoardTypes::INIT:
+//             board[i][j] = false;
+//             break;
+//           // renders the board to the pixel array
+//           case BoardTypes::OUT:
+//             display -> renderToBoard(board);
+//             break;
+//           case BoardTypes::RENDER:
+//             for (int i = player1.getY(); i < player1.getY() + player1.getHeight(); i++) {
+//               board[player1.getX()][i] = true;
+//             }
+//             for (int i = player2.getY(); i < player2.getY() + player2.getHeight(); i++) {
+//               board[player2.getX()][i] = true;
+//             }
+//             board[ball.getX()][ball.getY()] = true;
+//             break;
+//         }
+//       }
+//     }
+//   }
+//   // funny pyramid function ^
+
+
+//   Pong(DisplayDriver* display)
+//     : ball(3, 3), player1(0), player2(7) {
+//     renderBoard(BoardTypes::INIT);
+//     this->display = display;
+//   }
+
+//   void tick() {
+//     ball.move();
+//     // TODO: accept user input and use the up() and down() methods on each paddle to control them
+//     ball.checkNextColision(&player1, &player2);
+//     renderBoard(BoardTypes::INIT);
+//     renderBoard(BoardTypes::RENDER);
+//     renderBoard(BoardTypes::OUT);
+//   }
+// };

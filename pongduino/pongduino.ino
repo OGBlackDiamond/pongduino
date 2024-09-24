@@ -1,8 +1,3 @@
-const byte smile[8] = { 0b01111110, 0b10000001, 0b10110101, 0b10000101, 0b10000101, 0b10110101, 0b10000001, 0b01111110 };
-
-bool isSetup = false;
-
-
 class DisplayDriver {
 public:
 
@@ -29,22 +24,7 @@ public:
     sendData(0x0C, 0x01);
 
     //Clear screen
-    for (uint8_t i = 0b0001; i <= 0b1000; i++) {
-      sendData(i, 0);
-    }
-  }
-
-  void renderToBoard(bool board[8][8]) {
-    digitalWrite(LED_BUILTIN, LOW);
-    for (uint8_t i = 0b0001; i <= 0b1000; i++) {
-      delay(500);
-      uint8_t b = 0;
-      for (int j = 7; j >= 0; --j) {
-        b |= board[i][j] << (j);
-      }
-      sendData(i, b);
-    }
-    digitalWrite(LED_BUILTIN, HIGH);
+    clearScreen();
   }
 
   void sendData(uint8_t address, uint8_t din) {
@@ -55,6 +35,17 @@ public:
     digitalWrite(cs, HIGH);
   }
 
+  void drawColumn(uint8_t column, uint8_t value)
+  {
+    sendData(column + 1, value);
+  }
+
+  void clearScreen()
+  {
+    for (uint8_t i = 0b0001; i <= 0b1000; i++) {
+      sendData(i, 0);
+    }
+  }
 
 private:
 
@@ -64,313 +55,116 @@ private:
   const int clock = 44;
 };
 
-
+//-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 class Pong {
 
 private:
-
-  bool board[8][8];
-
-  // contains possible values for the renderBoard method
-  enum BoardTypes {
-    INIT,
-    OUT,
-    RENDER
-  };
-
-  class Paddle {
-  private:
-
-    int x;
-    int y;
-
-    int score;
-
-    // we can change this if needed
-    int height = 3;
-
-  public:
-
-    Paddle() {
-      x = -1;
-      y = -1;
-    }
-
-    Paddle(int x) {
-      this->x = x;
-      y = 3;
-      score = 0;
-    }
-
-    void up() {
-      y++;
-    }
-    void down() {
-      y--;
-    }
-    void scorePoint() {
-      score++;
-    }
-    int getY() {
-      return y;
-    }
-    int getX() {
-      return x;
-    }
-    int getHeight() {
-      return height;
-    }
-  };
-
-  class Ball {
-  private:
-
-    int x;
-    int y;
-
-    int direction[2];
-
-  public:
-
-    Ball(int x, int y) {
-      this->x = x;
-      this->y = y;
-    }
-
-    Ball(){}
-
-    void move() {
-      x += direction[0];
-      y += direction[1];
-    }
-
-    void checkNextColision(Paddle *p1, Paddle *p2) {
-      // if the ball is not near an edge, don't bother calculating anything
-      if (x <= 6 && x >= 2) return;
-
-      // decide which paddle to detect based on ball's position
-      Paddle player = x > 6 ? *p2 : *p1;
-
-      // the x and y positions the ball will be in on the next tick
-      int xStep = x + direction[0];
-      int yStep = y + direction[1];
-
-      if (yStep >= player.getY() && yStep <= player.getY() + player.getHeight()) {
-        direction[0] *= -1;
-        direction[1] = x - (player.getY() + (player.getHeight() / 2));
-        // cap the vertical speed
-        if (direction[1] > 3) { direction[1] = 3; }
-      }
-
-      if (yStep < 0 || yStep > 7) {
-        direction[1] *= -1;
-        // account for any overflow that would happen on the next tick
-        y -= direction[0];
-      }
-
-      if (xStep < 0 || xStep > 7) {
-        direction[0] *= -1;
-        direction[1] = 1;
-        x = 3;
-        y = 3;
-        player.scorePoint();
-      }
-    }
-
-    void setDirection(int x, int y) {
-      direction[0] = x;
-      direction[1] = y;
-    }
-
-    void setDirectionX(int x) {
-      this->x = x;
-    }
-
-    void setDirectionY(int y) {
-      this->y = y;
-    }
-
-    int *getDirection() {
-      return direction;
-    }
-
-    int getDirectionX() {
-      return direction[0];
-    }
-
-    int getDirectionY() {
-      return direction[1];
-    }
-
-    int getX() {
-      return x;
-    }
-
-    int getY() {
-      return y;
-    }
-  };
-
-  Paddle player1;
-  Paddle player2;
-  Ball ball;
+  const uint8_t paddleHeight = 4;
+  const uint8_t ballSlowness = 5;
 
   DisplayDriver* display;
 
-public:
+  uint8_t ballX = 3;
+  uint8_t ballY = 3;
 
+  uint8_t ballVelocityX = 1;
+  uint8_t ballVelocityY = 1;
 
-  // this method is really just doing different things to the entire board
-  // so we only have to write one double-for loop
-  void renderBoard(BoardTypes type) {
-    // funny double-for loop
-    for (int i = 0; i > sizeof(board) / sizeof(board[0]); i++) {
-      for (int j = 0; j > sizeof(board[0]) / sizeof(board[0][0]); j++) {
-        // switch through possible behaviors
-        //switch (type) {
-          // sets all values to false - a default state
-          //case INIT:
-            board[i][j] = false;
-            //break;
-          // renders the board to the pixel array
-          //case OUT:
-            display -> renderToBoard(board);
-            digitalWrite(LED_BUILTIN, LOW);
-            //return;
-          //case RENDER:
-            for (int i = player1.getY(); i < player1.getY() + player1.getHeight(); i++) {
-              board[player1.getX()][i] = true;
-            }
-            for (int i = player2.getY(); i < player2.getY() + player2.getHeight(); i++) {
-              board[player2.getX()][i] = true;
-            }
-            board[ball.getX()][ball.getY()] = true;
-            //break;
-        //}
-      }
-    }
-  }
-  // funny pyramid function ^
-
-
-  Pong(DisplayDriver* display)
-    : ball(3, 3), player1(0), player2(7) {
-    renderBoard(BoardTypes::INIT);
-    this->display = display;
-  }
-
-  Pong() {}
-
-  void tick() {
-    digitalWrite(LED_BUILTIN, HIGH);
-    //ball.move();
-    // TODO: accept user input and use the up() and down() methods on each paddle to control them
-    //ball.checkNextColision(&player1, &player2);
-    renderBoard(INIT);
-    renderBoard(RENDER);
-    renderBoard(OUT);
-  }
-};
-
-
-
-class NewPong {
-
-private:
-  const byte paddleHeight = 4;
-
-  DisplayDriver* display;
-
-  byte ballX = 3;
-  byte ballY = 3;
-
-  byte ballVelocityX = 1;
-  byte ballVelocityY = 1;
-
-  byte paddle1 = 0;
-  byte paddle2 = 0;
+  uint8_t paddle1 = 0;
+  uint8_t paddle2 = 0;
 
   bool bounce = false;
 
-  void DrawPaddle(bool side, byte height)
+  uint8_t frameCounter = 0;
+
+  void drawPaddle(bool side, uint8_t height)
   {
-    display->sendData(side ? 8 : 1, (byte)(pow(2, paddleHeight)) << (side ? paddle1 : paddle2));
+    display->sendData(side ? 8 : 1, (uint8_t)(pow(2, paddleHeight)) << (side ? paddle1 : paddle2));
   }
 
-  void DrawBall()
+  void drawBall()
   {
     display->sendData(ballX + 1, 0b00000001 << ballY);
   }
 
-  void BounceBall()
+  void moveBall()
   {
+    ballX += ballVelocityX;
+    ballY += ballVelocityY;
+
     if (ballY > 6 || ballY < 1) ballVelocityY *= -1;
 
     if (ballX > 5 && paddle1 <= ballY && paddle1 + paddleHeight > ballY)
     {
       ballVelocityX *= -1;
-      bounce = true;
+      beep(450, 20);
     }
     if (ballX < 2 && paddle2 <= ballY && paddle2 + paddleHeight > ballY)
     {
       ballVelocityX *= -1;
-      bounce = true;
+      beep(450, 20);
     }
   }
 
-  void ClearScreen()
+  void beep(int frequency, int duration)
   {
-    for (uint8_t i = 0b0001; i <= 0b1000; i++) {
-      display->sendData(i, 0);
-    }
+    tone(A14, frequency);
+    delay(duration);
+    noTone(A14);
+  }
+
+  void movePaddles()
+  {
+    paddle2 = (1023 - analogRead(A0)) / (1023 / (8 - paddleHeight));
+    paddle1 = (1023 - analogRead(A15)) / (1023 / (8 - paddleHeight));
+  }
+
+  void drawPaddles()
+  {
+    drawPaddle(false, paddleHeight);
+    drawPaddle(true, paddleHeight);
   }
 
 public:
 
-  NewPong (DisplayDriver* display)
+  Pong (DisplayDriver* display)
   {
     this->display = display;
   }
 
   void Tick()
   {
-    ClearScreen();
+    display->clearScreen();
 
-    if (bounce) 
-    {
-      tone(A14, 450);
-      delay(20);
-      noTone(A14);
-      bounce = false;
-    }
+    movePaddles();
+    drawPaddles();
 
-    DrawBall();
+    frameCounter++;
+    if (frameCounter < ballSlowness) return;
 
-    DrawPaddle(false, paddleHeight);
-    DrawPaddle(true, paddleHeight);
+    moveBall();
+    drawBall();
 
-    paddle2 = (1023 - analogRead(A0)) / (1023 / (8 - paddleHeight));
-    paddle1 = (1023 - analogRead(A15)) / (1023 / (8 - paddleHeight));
-
-    ballX += ballVelocityX;
-    ballY += ballVelocityY;
-    BounceBall();
+    frameCounter = 0;
   }
 };
 
+//-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+const uint8_t framerate = 20;
 
 DisplayDriver* dis;
-NewPong* pong;
+Pong* pong;
+
+bool isSetup = false;
 
 void setup() {
-  // funny memory leak
   pinMode(LED_BUILTIN, OUTPUT);
   Serial.begin(9600);
 
   dis = new DisplayDriver();
-  //game = new Pong(dis);
-  pong = new NewPong(dis);
+  pong = new Pong(dis);
   isSetup = true;
 }
 
@@ -378,12 +172,7 @@ void setup() {
 void loop() {
   if (!isSetup) return;
   pong -> Tick();
-  delay(250);
-
-  // for (uint8_t i = 0b0001; i <= 0b1000; i++) {
-  //   dis -> sendData(i, smile[i-1]);
-  // }
-  // delay(250);
+  delay(1000 / framerate);
 }
 
 

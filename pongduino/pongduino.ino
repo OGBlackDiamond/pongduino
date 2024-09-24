@@ -21,10 +21,17 @@ public:
     sendData(0x09, 0x00);
     //Set brightness to 1/16
     sendData(0x0A, 0x00);
+    //Disable test mode
+    sendData(0x0F, 0x00);
     //Scan limit 7
     sendData(0x0B, 0x07);
     //Power on display
     sendData(0x0C, 0x01);
+
+    //Clear screen
+    for (uint8_t i = 0b0001; i <= 0b1000; i++) {
+      sendData(i, 0);
+    }
   }
 
   void renderToBoard(bool board[8][8]) {
@@ -56,6 +63,7 @@ private:
   const int cs = 46;
   const int clock = 44;
 };
+
 
 
 class Pong {
@@ -266,30 +274,116 @@ public:
 };
 
 
+
+class NewPong {
+
+private:
+  const byte paddleHeight = 4;
+
+  DisplayDriver* display;
+
+  byte ballX = 3;
+  byte ballY = 3;
+
+  byte ballVelocityX = 1;
+  byte ballVelocityY = 1;
+
+  byte paddle1 = 0;
+  byte paddle2 = 0;
+
+  bool bounce = false;
+
+  void DrawPaddle(bool side, byte height)
+  {
+    display->sendData(side ? 8 : 1, (byte)(pow(2, paddleHeight)) << (side ? paddle1 : paddle2));
+  }
+
+  void DrawBall()
+  {
+    display->sendData(ballX + 1, 0b00000001 << ballY);
+  }
+
+  void BounceBall()
+  {
+    if (ballY > 6 || ballY < 1) ballVelocityY *= -1;
+
+    if (ballX > 5 && paddle1 <= ballY && paddle1 + paddleHeight > ballY)
+    {
+      ballVelocityX *= -1;
+      bounce = true;
+    }
+    if (ballX < 2 && paddle2 <= ballY && paddle2 + paddleHeight > ballY)
+    {
+      ballVelocityX *= -1;
+      bounce = true;
+    }
+  }
+
+  void ClearScreen()
+  {
+    for (uint8_t i = 0b0001; i <= 0b1000; i++) {
+      display->sendData(i, 0);
+    }
+  }
+
+public:
+
+  NewPong (DisplayDriver* display)
+  {
+    this->display = display;
+  }
+
+  void Tick()
+  {
+    ClearScreen();
+
+    if (bounce) 
+    {
+      tone(A14, 450);
+      delay(20);
+      noTone(A14);
+      bounce = false;
+    }
+
+    DrawBall();
+
+    DrawPaddle(false, paddleHeight);
+    DrawPaddle(true, paddleHeight);
+
+    paddle2 = (1023 - analogRead(A0)) / (1023 / (8 - paddleHeight));
+    paddle1 = (1023 - analogRead(A15)) / (1023 / (8 - paddleHeight));
+
+    ballX += ballVelocityX;
+    ballY += ballVelocityY;
+    BounceBall();
+  }
+};
+
+
 DisplayDriver* dis;
-Pong* game;
+NewPong* pong;
 
 void setup() {
   // funny memory leak
   pinMode(LED_BUILTIN, OUTPUT);
+  Serial.begin(9600);
 
   dis = new DisplayDriver();
-  game = new Pong(dis);
+  //game = new Pong(dis);
+  pong = new NewPong(dis);
   isSetup = true;
 }
 
 
 void loop() {
   if (!isSetup) return;
-
-  game -> tick();
+  pong -> Tick();
   delay(250);
 
   // for (uint8_t i = 0b0001; i <= 0b1000; i++) {
   //   dis -> sendData(i, smile[i-1]);
   // }
   // delay(250);
-
 }
 
 

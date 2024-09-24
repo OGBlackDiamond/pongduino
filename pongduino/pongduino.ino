@@ -36,6 +36,8 @@ public:
 
   void drawColumn(uint8_t column, uint8_t value)
   {
+    //Don't draw the column if it isn't a display register
+    if (column < 0b0001 || column > 0b1000) return;
     //MAX7219 display registers start at 0x01 instead of 0
     sendData(column + 1, value);
   }
@@ -49,8 +51,8 @@ public:
   void clearScreen()
   {
     //Sens 0 to every display register
-    for (uint8_t i = 0b0001; i <= 0b1000; i++) {
-      sendData(i, 0);
+    for (uint8_t i = 0; i < 8; i++) {
+      drawColumn(i, 0);
     }
   }
 

@@ -1,4 +1,4 @@
-//const uint8_t digits[3][10] = { { 0b11111000, 0b10001000, 0b11111000 }, { 0, 0, 0b11111000 }, { 0b10111000, 0b10101000, 0b11101000 }, { 0b10101000, 0b10101000, 0b11111000 }, { 0b11100000, 0b00100000, 0b11111000 }, { 0b11101000, 0b10101000, 0b10111000 }, { 0b11111000, 0b00101000, 0b00111000 }, { 0b10000000, 0b10000000, 0b11111000 }, { 0b11111000, 0b10101000, 0b11111000 }, { 0b11100000, 0b10100000, 0b11111000 } };
+const uint8_t digits[10][3] = { { 0b00011111, 0b00010001, 0b00011111 }, { 0b00000000, 0b00000000, 0b00011111 }, { 0b00011101, 0b00010101, 0b00010111 }, { 0b00010101, 0b00010101, 0b00011111 }, { 0b00000111, 0b00000100, 0b00011111 }, { 0b00010111, 0b00010101, 0b00011101 }, { 0b00011111, 0b00010100, 0b00000111 }, { 0b00010000, 0b00010000, 0b00011111 }, { 0b00011111, 0b00010101, 0b00011111 }, { 0b00011100, 0b00010100, 0b00011111 } };
 
 class DisplayDriver {
 public:
@@ -39,7 +39,7 @@ public:
   void drawColumn(uint8_t column, uint8_t value)
   {
     //Don't draw the column if it isn't a display register
-    if (column < 0b0001 || column > 0b1000) return;
+    if (column < 0b0000 || column > 0b0111) return;
     //MAX7219 display registers start at 0x01 instead of 0
     sendData(column + 1, value);
   }
@@ -70,8 +70,8 @@ private:
 class Pong {
 
 private:
-  const uint8_t paddleHeight = 2;
-  const uint8_t ballSlowness = 5;
+  const uint8_t paddleHeight = 3;
+  const uint8_t ballSlowness = 4;
 
 
   DisplayDriver* display;
@@ -100,9 +100,30 @@ private:
     display->drawColumn(side ? 7 : 0, paddle);
   }
 
+  void drawPaddles()
+  {
+    drawPaddle(false, paddleHeight);
+    drawPaddle(true, paddleHeight);
+  }
+
   void drawBall()
   {
     display->drawPixel(ballX, ballY);
+  }
+
+  void drawScore(bool side)
+  {
+    uint8_t offset = side ? 0 : 5;
+    for (int i = 2; i >= 0; i--)
+    {
+      display->drawColumn(i + offset, digits[(side ? score2 : score1)][i]);
+    }
+  }
+
+  void drawScores()
+  {
+    drawScore(true);
+    drawScore(false);
   }
 
   void moveBall()
@@ -119,24 +140,32 @@ private:
     if (ballX > 5 && paddle1 <= ballY && paddle1 + paddleHeight > ballY)
     {
       ballVelocityX *= -1;
-      beep(450, 20);
-    } else {
+      beep(550, 20);
+    } else if (ballX > 7 && ballX != 255) {
       score2++;
       reset();
+      return;
     }
     if (ballX < 2 && paddle2 <= ballY && paddle2 + paddleHeight > ballY)
     {
       ballVelocityX *= -1;
       beep(450, 20);
-    } else {
+    } else if (ballX == 255) {
       score1++;
       reset();
+      return;
     }
   }
 
   void reset()
   {
-    beep(350, 700);
+    // beep(350, 100);
+    // delay(50);
+    // beep(350, 300);
+    // delay(200);
+    beep(450, 100);
+    beep(550, 100);
+    beep(650, 100);
 
     //Reset values
     ballX = 3;
@@ -145,7 +174,12 @@ private:
     ballVelocityY = 1;
     frameCounter = 0;
 
+    display->clearScreen();
+    drawScores();
+    delay(1000);
+
     //Draw first frame to freeze on for a second
+    display->clearScreen();
     movePaddles();
     drawPaddles();
     drawBall();
@@ -166,12 +200,6 @@ private:
     paddle1 = (1023 - analogRead(A15)) / (1023 / (8 - paddleHeight));
   }
 
-  void drawPaddles()
-  {
-    drawPaddle(false, paddleHeight);
-    drawPaddle(true, paddleHeight);
-  }
-
 public:
 
   Pong (DisplayDriver* display)
@@ -183,15 +211,14 @@ public:
   void Tick()
   {
     display->clearScreen();
-
     movePaddles();
     drawPaddles();
+    drawBall();
 
     frameCounter++;
     if (frameCounter < ballSlowness) return;
 
     moveBall();
-    drawBall();
 
     frameCounter = 0;
   }
@@ -199,7 +226,7 @@ public:
 
 //-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-const uint8_t framerate = 20;
+const uint8_t framerate = 60;
 
 DisplayDriver* dis;
 Pong* pong;

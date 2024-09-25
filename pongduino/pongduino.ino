@@ -1,4 +1,4 @@
-const uint8_t digits[10][3] = { { 0b00011111, 0b00010001, 0b00011111 }, { 0b00000000, 0b00000000, 0b00011111 }, { 0b00011101, 0b00010101, 0b00010111 }, { 0b00010101, 0b00010101, 0b00011111 }, { 0b00000111, 0b00000100, 0b00011111 }, { 0b00010111, 0b00010101, 0b00011101 }, { 0b00011111, 0b00010100, 0b00000111 }, { 0b00010000, 0b00010000, 0b00011111 }, { 0b00011111, 0b00010101, 0b00011111 }, { 0b00011100, 0b00010100, 0b00011111 } };
+const uint8_t digits[10][3] = { { 0b00011111, 0b00010001, 0b00011111 }, { 0b00000000, 0b00000000, 0b00011111 }, { 0b00011101, 0b00010101, 0b00010111 }, { 0b00010101, 0b00010101, 0b00011111 }, { 0b00000111, 0b00000100, 0b00011111 }, { 0b00010111, 0b00010101, 0b00011101 }, { 0b00011111, 0b00010101, 0b00011101 }, { 0b00000001, 0b00000001, 0b00011111 }, { 0b00011111, 0b00010101, 0b00011111 }, { 0b00010111, 0b00010101, 0b00011111 } };
 
 class DisplayDriver {
 public:
@@ -71,8 +71,8 @@ class Pong {
 
 private:
   const uint8_t paddleHeight = 3;
-  const uint8_t ballSlowness = 4;
-
+  const uint8_t ballSlowness = 7;
+  const uint8_t winThreshold = 9;
 
   DisplayDriver* display;
 
@@ -159,24 +159,29 @@ private:
 
   void reset()
   {
-    // beep(350, 100);
-    // delay(50);
-    // beep(350, 300);
-    // delay(200);
     beep(450, 100);
     beep(550, 100);
     beep(650, 100);
 
     //Reset values
-    ballX = 3;
-    ballY = 3;
-    ballVelocityX = 1;
-    ballVelocityY = 1;
+    ballX = random(3, 5);
+    ballY = random(3, 5);
+    ballVelocityX = (random(2) == 1) ? -1 : 1;
+    ballVelocityY = (random(2) == 1) ? -1 : 1;
     frameCounter = 0;
 
     display->clearScreen();
     drawScores();
     delay(1000);
+
+    if (score1 >= winThreshold || score2 >= winThreshold)
+    {
+      winTune();
+      score1 = 0;
+      score2 = 0;
+      reset();
+      return;
+    }
 
     //Draw first frame to freeze on for a second
     display->clearScreen();
@@ -191,6 +196,24 @@ private:
     tone(A14, frequency);
     delay(duration);
     noTone(A14);
+  }
+
+  void winTune()
+  {
+    beep(659.25, 166);
+    beep(587.33, 166);
+    beep(369.99, 333);
+    beep(415.3, 333);
+    beep(554.37, 166);
+    beep(493.88, 166);
+    beep(293.66, 333);
+    beep(329.63, 333);
+    beep(493.88, 166);
+    beep(440, 166);
+    beep(277.18, 333);
+    beep(329.63, 333);
+    beep(440, 666);
+    delay(2000);
   }
 
   void movePaddles()

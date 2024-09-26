@@ -133,13 +133,18 @@ private:
     ballY += ballVelocityY;
 
     //Bounce ball off top and bottom of the screen
-    if (ballY > 6 || ballY < 1) ballVelocityY *= -1;
+    //if (ballY > 6 || ballY < 1) ballVelocityY;
+
+    ballVelocityY = ballY > 6 ? -1 : ballY < 1 ? 1 : ballVelocityY;
 
     //Check if paddles are blocking the ball
     //Bounce the ball and play a noise if it is, add a score point and reset otherwise
     if (ballX > 5 && paddle1 <= ballY && paddle1 + paddleHeight > ballY)
     {
       ballVelocityX *= -1;
+      if (ballY == paddle1) {ballVelocityY = -1;}
+      else if (ballY == paddle1 + 1 && paddle1 != 0 && paddle1 + paddleHeight != 8) {ballVelocityY = 0;}
+      else if (ballY == paddle1 + paddleHeight-1) {ballVelocityY = 1;}
       beep(550, 20);
     } else if (ballX > 7 && ballX != 255) {
       score2++;
@@ -149,6 +154,9 @@ private:
     if (ballX < 2 && paddle2 <= ballY && paddle2 + paddleHeight > ballY)
     {
       ballVelocityX *= -1;
+      if (ballY == paddle2) {ballVelocityY = -1;}
+      else if (ballY == paddle2 + 1 && paddle2 != 0 && paddle2 + paddleHeight != 8) {ballVelocityY = 0;}
+      else if (ballY == paddle2 + paddleHeight-1) {ballVelocityY = 1;}
       beep(450, 20);
     } else if (ballX == 255) {
       score1++;
@@ -198,6 +206,7 @@ private:
     noTone(A14);
   }
 
+  // funy nokia ringtone
   void winTune()
   {
     beep(659.25, 166);

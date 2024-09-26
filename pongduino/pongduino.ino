@@ -186,6 +186,7 @@ private:
     ballVelocityX = (random(2) == 1) ? -1 : 1;
     ballVelocityY = (random(2) == 1) ? -1 : 1;
     frameCounter = 0;
+    initialBallSlowness = 12;
 
     display->clearScreen();
     drawScores();

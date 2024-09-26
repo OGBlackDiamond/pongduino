@@ -72,6 +72,7 @@ class Pong {
 private:
   const uint8_t paddleHeight = 3;
   const uint8_t ballSlowness = 7;
+  const uint8_t initialBallSlowness = 12;
   const uint8_t winThreshold = 9;
 
   DisplayDriver* display;
@@ -128,13 +129,19 @@ private:
 
   void moveBall()
   {
+
+    void increaseBallSpeed() {
+      if (initialBallSlowness < ballSlowness) {
+        initialBallSlowness--;
+      }
+    }
+
+
     //Move the ball by its velocity
     ballX += ballVelocityX;
     ballY += ballVelocityY;
 
     //Bounce ball off top and bottom of the screen
-    //if (ballY > 6 || ballY < 1) ballVelocityY;
-
     ballVelocityY = ballY > 6 ? -1 : ballY < 1 ? 1 : ballVelocityY;
 
     //Check if paddles are blocking the ball
@@ -145,6 +152,7 @@ private:
       if (ballY == paddle1) {ballVelocityY = -1;}
       else if (ballY == paddle1 + 1 && paddle1 != 0 && paddle1 + paddleHeight != 8) {ballVelocityY = 0;}
       else if (ballY == paddle1 + paddleHeight-1) {ballVelocityY = 1;}
+      increaseBallSpeed();
       beep(550, 20);
     } else if (ballX > 7 && ballX != 255) {
       score2++;
@@ -157,6 +165,7 @@ private:
       if (ballY == paddle2) {ballVelocityY = -1;}
       else if (ballY == paddle2 + 1 && paddle2 != 0 && paddle2 + paddleHeight != 8) {ballVelocityY = 0;}
       else if (ballY == paddle2 + paddleHeight-1) {ballVelocityY = 1;}
+      increaseBallSpeed();
       beep(450, 20);
     } else if (ballX == 255) {
       score1++;
@@ -248,7 +257,7 @@ public:
     drawBall();
 
     frameCounter++;
-    if (frameCounter < ballSlowness) return;
+    if (frameCounter < initialBallSlowness) return;
 
     moveBall();
 

@@ -72,7 +72,7 @@ class Pong {
 private:
   const uint8_t paddleHeight = 3;
   const uint8_t ballSlowness = 7;
-  const uint8_t initialBallSlowness = 12;
+  uint8_t initialBallSlowness = 12;
   const uint8_t winThreshold = 9;
 
   DisplayDriver* display;
@@ -127,15 +127,14 @@ private:
     drawScore(false);
   }
 
+  void increaseBallSpeed() {
+    if (initialBallSlowness > ballSlowness) {
+      initialBallSlowness--;
+    }
+  }
+  
   void moveBall()
   {
-
-    void increaseBallSpeed() {
-      if (initialBallSlowness < ballSlowness) {
-        initialBallSlowness--;
-      }
-    }
-
 
     //Move the ball by its velocity
     ballX += ballVelocityX;

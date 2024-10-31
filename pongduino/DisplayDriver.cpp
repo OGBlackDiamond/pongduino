@@ -141,13 +141,6 @@ void DisplayDriver::renderDisplay() {
   }  
 }
 
-int sign(int value)
-{
-  if (value > 0) return 1;
-  if (value == 0) return 0;
-  if (value < 0) return -1;
-}
-
 void DisplayDriver::drawLine(int x1, int y1, int x2, int y2)
 {
   int y = y1;
@@ -204,4 +197,11 @@ void DisplayDriver::drawTriangle(int x1, int y1, int x2, int y2, int x3, int y3,
   drawLine(p1, p2);
   drawLine(p2, p3);
   drawLine(p3, p1);
+}
+
+int sign(int value)
+{
+  if (value > 0) return 1;
+  if (value == 0) return 0;
+  if (value < 0) return -1;
 }
